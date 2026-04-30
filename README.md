@@ -3,7 +3,7 @@
 <img src="./screenshot1.png" alt="screenshot1" width="600" height="400">
 <img src="./screenshot2.png" alt="screenshot2" width="600" height="400">
 
-A custom vehicle physics project built in Godot 4.6 using C#. Also [in GDScript](https://github.com/thetidodev/custom-vehicle-gd)
+A custom vehicle physics project built in Godot 4.6 using C#. Also [in GDScript](https://github.com/thetidodev/godot-custom-vehicle-gd)
 
 [Showcase video](https://youtube.com)
 
