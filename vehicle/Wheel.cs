@@ -359,7 +359,7 @@ public partial class Wheel : Node3D
                 skidMarkEmitter.Emitting = outputSkidding > skidMarkSensitivity * ground.skidMarkSensitivity;
                 skidMarkEmitter.GlobalPosition = contactPoint + Vector3.Up * 0.005f;
                 var skidMarkLookDirection = skidMarkEmitter.GlobalPosition + car.GetPointVelocity(skidMarkEmitter.GlobalPosition).Normalized();
-                skidMarkEmitter.LookAt(skidMarkLookDirection);
+                if (skidMarkLookDirection.Dot(Vector3.Up) > 0.001f) skidMarkEmitter.LookAt(skidMarkLookDirection);
             }
         }
         else

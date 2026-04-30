@@ -289,148 +289,148 @@ skidColor = Color(0.41929844, 0.35554063, 0.20647272, 1)
 grip = 0.5
 skidMarkSensitivity = 0.2
 
-[node name="ArrowSign46" parent="map2/Plane_col/StaticBody3D" index="1" unique_id=823206466 instance=ExtResource("9_kek77")]
+[node name="ArrowSign46" parent="map2/Plane_col/StaticBody3D" index="1" unique_id=155437371 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00069111586, 0, 0.0002493622, 0, 0.00073074084, 0, -0.000249407, 0, 0.00069124, 0.85537606, -0.023071464, 0.3938389)
 
-[node name="ArrowSign47" parent="map2/Plane_col/StaticBody3D" index="2" unique_id=1238708453 instance=ExtResource("9_kek77")]
+[node name="ArrowSign47" parent="map2/Plane_col/StaticBody3D" index="2" unique_id=1881496207 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00073149684, 0, -6.8811896e-05, 0, 0.00073074084, 0, 6.882426e-05, 0, 0.0007316283, 0.86110616, -0.02307146, 0.42156342)
 
-[node name="ArrowSign48" parent="map2/Plane_col/StaticBody3D" index="3" unique_id=308013120 instance=ExtResource("9_kek77")]
+[node name="ArrowSign48" parent="map2/Plane_col/StaticBody3D" index="3" unique_id=221729079 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.0006807064, 0, -0.0002765169, 0, 0.00073074084, 0, 0.00027656654, 0, 0.00068082864, 0.85842377, -0.023071464, 0.44885242)
 
-[node name="ArrowSign" parent="map2/Plane_col/StaticBody3D" index="4" unique_id=155437371 instance=ExtResource("9_kek77")]
+[node name="ArrowSign" parent="map2/Plane_col/StaticBody3D" index="4" unique_id=1858912871 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00068637537, 0, -0.00026217577, 0, 0.00073074084, 0, 0.00026212874, 0, -0.00068649865, 0.29534963, -0.0133855445, 0.8798176)
 
-[node name="ArrowSign2" parent="map2/Plane_col/StaticBody3D" index="5" unique_id=512407158 instance=ExtResource("9_kek77")]
+[node name="ArrowSign2" parent="map2/Plane_col/StaticBody3D" index="5" unique_id=1255252591 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00048614154, -0.00012986746, 0.00053529616, -8.168599e-05, 0.000719063, 0.00010221066, -0.00054480875, 8.07e-06, -0.0004929784, 0.31140897, -0.01166169, 0.7502528)
 
-[node name="ArrowSign3" parent="map2/Plane_col/StaticBody3D" index="6" unique_id=58355968 instance=ExtResource("9_kek77")]
+[node name="ArrowSign3" parent="map2/Plane_col/StaticBody3D" index="6" unique_id=2042410859 instance=ExtResource("9_kek77")]
 transform = Transform3D(-7.444816e-05, -0.00010994099, 0.00072266755, -8.168598e-05, 0.0007190629, 0.00010221064, -0.00072636607, -6.959638e-05, -8.5563646e-05, 0.32775208, -0.010316242, 0.7402851)
 
-[node name="ArrowSign4" parent="map2/Plane_col/StaticBody3D" index="7" unique_id=1439560625 instance=ExtResource("9_kek77")]
+[node name="ArrowSign4" parent="map2/Plane_col/StaticBody3D" index="7" unique_id=1149221883 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.0004219843, -9.12308e-05, 0.00059452915, -5.0523184e-05, 0.00071426335, 0.0001467159, -0.0005993326, -0.00012444648, 0.0004062341, 0.3450315, -0.0072459243, 0.74338174)
 
-[node name="ArrowSign5" parent="map2/Plane_col/StaticBody3D" index="8" unique_id=1865962188 instance=ExtResource("9_kek77")]
+[node name="ArrowSign5" parent="map2/Plane_col/StaticBody3D" index="8" unique_id=1226119441 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00016642993, -0.00010049933, 0.0007085856, 3.5728895e-05, 0.0007236844, 9.540581e-05, -0.0007147358, 1.2774434e-05, 0.00016976711, 0.39873478, 0.00033390336, 0.8838009)
 
-[node name="ArrowSign6" parent="map2/Plane_col/StaticBody3D" index="9" unique_id=2018446434 instance=ExtResource("9_kek77")]
+[node name="ArrowSign6" parent="map2/Plane_col/StaticBody3D" index="9" unique_id=1348944265 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00022743156, -7.93878e-05, 0.00069418986, 3.5728895e-05, 0.0007236844, 9.5405805e-05, -0.0006977258, 6.293552e-05, -0.00022139345, 0.4166782, 0.0033605918, 0.8831104)
 
-[node name="ArrowSign7" parent="map2/Plane_col/StaticBody3D" index="10" unique_id=1872881617 instance=ExtResource("9_kek77")]
+[node name="ArrowSign7" parent="map2/Plane_col/StaticBody3D" index="10" unique_id=1835882668 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00040034342, 0, -0.0006161852, 0, 0.00073074084, 0, 0.0006160746, 0, 0.0004004153, 0.13423926, 0.0034256317, 0.42706758)
 
-[node name="ArrowSign8" parent="map2/Plane_col/StaticBody3D" index="11" unique_id=1269328035 instance=ExtResource("9_kek77")]
+[node name="ArrowSign8" parent="map2/Plane_col/StaticBody3D" index="11" unique_id=1451455585 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00065051013, 0, -0.00034161576, 2.727345e-05, 0.0007284074, 5.1953193e-05, 0.0003404637, -5.835037e-05, 0.00064854935, 0.12390597, 0.004406024, 0.437399)
 
-[node name="ArrowSign9" parent="map2/Plane_col/StaticBody3D" index="12" unique_id=1272307500 instance=ExtResource("9_kek77")]
+[node name="ArrowSign9" parent="map2/Plane_col/StaticBody3D" index="12" unique_id=1650859488 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.0007102359, 0, 0.00018815043, 0, 0.0007307408, 0, -0.0001881167, 0, 0.0007103634, 0.12185843, 0.0042042546, 0.45019776)
 
-[node name="ArrowSign10" parent="map2/Plane_col/StaticBody3D" index="13" unique_id=1361483794 instance=ExtResource("9_kek77")]
+[node name="ArrowSign10" parent="map2/Plane_col/StaticBody3D" index="13" unique_id=1357761895 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00042003396, 0, -0.00060293, 0, 0.00073074084, 0, 0.0006028218, 0, -0.00042010949, -0.8224158, -0.005921621, 0.78619343)
 
-[node name="ArrowSign11" parent="map2/Plane_col/StaticBody3D" index="14" unique_id=1622823705 instance=ExtResource("9_kek77")]
+[node name="ArrowSign11" parent="map2/Plane_col/StaticBody3D" index="14" unique_id=981274821 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0006760984, 0, -0.00028765126, 0, 0.0007307408, 0, 0.00028759972, 0, -0.0006762199, -0.83769244, -0.0069032274, 0.7656131)
 
-[node name="ArrowSign12" parent="map2/Plane_col/StaticBody3D" index="15" unique_id=1482947358 instance=ExtResource("9_kek77")]
+[node name="ArrowSign12" parent="map2/Plane_col/StaticBody3D" index="15" unique_id=1977825083 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0007344323, 0, 2.0787795e-05, 0, 0.0007307408, 0, -2.0783931e-05, 0, -0.00073456403, -0.8442473, -0.007476639, 0.73970973)
 
-[node name="ArrowSign13" parent="map2/Plane_col/StaticBody3D" index="16" unique_id=510109252 instance=ExtResource("9_kek77")]
+[node name="ArrowSign13" parent="map2/Plane_col/StaticBody3D" index="16" unique_id=1682993529 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00073205744, 0, -6.257765e-05, 0, 0.00073074084, 0, 6.256642e-05, 0, -0.0007321889, -0.39054283, -0.022301424, 0.21369833)
 
-[node name="ArrowSign14" parent="map2/Plane_col/StaticBody3D" index="17" unique_id=995224936 instance=ExtResource("9_kek77")]
+[node name="ArrowSign14" parent="map2/Plane_col/StaticBody3D" index="17" unique_id=2025854257 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0006654254, 4.6905825e-05, -0.00030796396, 1.8111716e-05, 0.00072692113, 7.281965e-05, 0.0003109727, 5.8032558e-05, -0.0006632288, -0.3927885, -0.022301424, 0.19822457)
 
-[node name="ArrowSign15" parent="map2/Plane_col/StaticBody3D" index="18" unique_id=1217197176 instance=ExtResource("9_kek77")]
+[node name="ArrowSign15" parent="map2/Plane_col/StaticBody3D" index="18" unique_id=473196631 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00035279914, 0, -0.0006445966, 0, 0.0007307408, 0, 0.00064448087, 0, -0.00035286252, -0.40325817, -0.021185903, 0.18673407)
 
-[node name="ArrowSign16" parent="map2/Plane_col/StaticBody3D" index="19" unique_id=1998898044 instance=ExtResource("9_kek77")]
+[node name="ArrowSign16" parent="map2/Plane_col/StaticBody3D" index="19" unique_id=177944028 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00071646785, 0, 0.00016280675, -1.6347938e-05, 0.0007270462, -7.196864e-05, -0.00016195454, -7.338916e-05, -0.0007129735, -0.6005382, -0.008083146, -0.29242143)
 
-[node name="ArrowSign17" parent="map2/Plane_col/StaticBody3D" index="20" unique_id=1304667884 instance=ExtResource("9_kek77")]
+[node name="ArrowSign17" parent="map2/Plane_col/StaticBody3D" index="20" unique_id=1297566739 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00064131495, 0, 0.0003585861, 0, 0.00073074084, 0, -0.00035852173, 0, -0.00064143026, -0.59459907, -0.010270708, -0.31038988)
 
-[node name="ArrowSign18" parent="map2/Plane_col/StaticBody3D" index="21" unique_id=1582182127 instance=ExtResource("9_kek77")]
+[node name="ArrowSign18" parent="map2/Plane_col/StaticBody3D" index="21" unique_id=315308120 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0004709356, 0, 0.0005640537, 0, 0.0007307408, 0, -0.0005639525, 0, -0.00047102035, -0.5833941, -0.011338286, -0.32770947)
 
-[node name="ArrowSign19" parent="map2/Plane_col/StaticBody3D" index="22" unique_id=1277100238 instance=ExtResource("9_kek77")]
+[node name="ArrowSign19" parent="map2/Plane_col/StaticBody3D" index="22" unique_id=411779515 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00056309666, 0, 0.0004720432, 0, 0.00073074084, 0, -0.00047195848, 0, -0.0005631979, -0.11511774, -0.0080117155, -0.44827297)
 
-[node name="ArrowSign20" parent="map2/Plane_col/StaticBody3D" index="23" unique_id=1823956412 instance=ExtResource("9_kek77")]
+[node name="ArrowSign20" parent="map2/Plane_col/StaticBody3D" index="23" unique_id=912348515 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0007288082, 0, 9.308188e-05, 0, 0.00073074084, 0, -9.306517e-05, 0, -0.0007289392, -0.102969304, -0.0083401445, -0.4680675)
 
-[node name="ArrowSign21" parent="map2/Plane_col/StaticBody3D" index="24" unique_id=270934242 instance=ExtResource("9_kek77")]
+[node name="ArrowSign21" parent="map2/Plane_col/StaticBody3D" index="24" unique_id=840053019 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0007107583, 0, -0.0001861659, 0, 0.00073074084, 0, 0.0001861325, 0, -0.000710886, -0.097658806, -0.008643482, -0.49558556)
 
-[node name="ArrowSign22" parent="map2/Plane_col/StaticBody3D" index="25" unique_id=36304684 instance=ExtResource("9_kek77")]
+[node name="ArrowSign22" parent="map2/Plane_col/StaticBody3D" index="25" unique_id=600493683 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0002811675, 0, -0.0006789205, 0, 0.00073074084, 0, 0.0006787986, 0, -0.00028121806, -0.11812357, -0.006485276, -0.51460266)
 
-[node name="ArrowSign23" parent="map2/Plane_col/StaticBody3D" index="26" unique_id=2085503867 instance=ExtResource("9_kek77")]
+[node name="ArrowSign23" parent="map2/Plane_col/StaticBody3D" index="26" unique_id=176289091 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00069830107, 0, -0.00022851038, 0, 0.00073074084, 0, 0.00022846939, 0, -0.00069842656, -0.30728284, -0.015592481, -0.50968003)
 
-[node name="ArrowSign24" parent="map2/Plane_col/StaticBody3D" index="27" unique_id=1504192837 instance=ExtResource("9_kek77")]
+[node name="ArrowSign24" parent="map2/Plane_col/StaticBody3D" index="27" unique_id=846182497 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0007346581, 0, -1.0003765e-05, 0, 0.00073074084, 0, 1.00019715e-05, 0, -0.00073479017, -0.3139323, -0.017162671, -0.53155)
 
-[node name="ArrowSign25" parent="map2/Plane_col/StaticBody3D" index="28" unique_id=1142329660 instance=ExtResource("9_kek77")]
+[node name="ArrowSign25" parent="map2/Plane_col/StaticBody3D" index="28" unique_id=506213349 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00067742635, 0, 0.00028450892, 0, 0.00073074084, 0, -0.0002844579, 0, -0.000677548, -0.31024495, -0.017654907, -0.5555307)
 
-[node name="ArrowSign26" parent="map2/Plane_col/StaticBody3D" index="29" unique_id=1812227456 instance=ExtResource("9_kek77")]
+[node name="ArrowSign26" parent="map2/Plane_col/StaticBody3D" index="29" unique_id=414268144 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.000473382, 0, 0.0005620013, 0, 0.00073074084, 0, -0.0005619005, 0, -0.00047346708, -0.1116543, -0.0038974825, -0.8044935)
 
-[node name="ArrowSign27" parent="map2/Plane_col/StaticBody3D" index="30" unique_id=1526310001 instance=ExtResource("9_kek77")]
+[node name="ArrowSign27" parent="map2/Plane_col/StaticBody3D" index="30" unique_id=1433212289 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00013237985, 0, 0.00072283176, 0, 0.00073074084, 0, -0.00072270207, 0, -0.00013240364, -0.09687002, -0.0034137834, -0.81298953)
 
-[node name="ArrowSign28" parent="map2/Plane_col/StaticBody3D" index="31" unique_id=1418505688 instance=ExtResource("9_kek77")]
+[node name="ArrowSign28" parent="map2/Plane_col/StaticBody3D" index="31" unique_id=653843094 instance=ExtResource("9_kek77")]
 transform = Transform3D(1.21816865e-05, 0, 0.0007347571, 0, 0.00073074084, 0, -0.0007346253, 0, 1.2183874e-05, -0.010037071, -0.009233084, -0.66130066)
 
-[node name="ArrowSign29" parent="map2/Plane_col/StaticBody3D" index="32" unique_id=1846088262 instance=ExtResource("9_kek77")]
+[node name="ArrowSign29" parent="map2/Plane_col/StaticBody3D" index="32" unique_id=1700077725 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.00039010422, -6.0162885e-05, 0.0006197741, 2.930653e-05, 0.0007247032, 8.9596564e-05, -0.0006219183, 7.188774e-05, -0.00038453736, 0.010352766, -0.0071938373, -0.6684676)
 
-[node name="ArrowSign30" parent="map2/Plane_col/StaticBody3D" index="33" unique_id=431385437 instance=ExtResource("9_kek77")]
+[node name="ArrowSign30" parent="map2/Plane_col/StaticBody3D" index="33" unique_id=537667954 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0006758169, 0, 0.00028831218, 0, 0.0007307408, 0, -0.00028826052, 0, -0.0006759385, 0.0262755, -0.0030888487, -0.6901551)
 
-[node name="ArrowSign31" parent="map2/Plane_col/StaticBody3D" index="34" unique_id=305814706 instance=ExtResource("9_kek77")]
+[node name="ArrowSign31" parent="map2/Plane_col/StaticBody3D" index="34" unique_id=1357356346 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0003390767, 0, 0.0006519219, 0, 0.00073074084, 0, -0.0006518049, 0, -0.00033913768, 0.02829748, 0.0069496874, -0.8291446)
 
-[node name="ArrowSign32" parent="map2/Plane_col/StaticBody3D" index="35" unique_id=1088499735 instance=ExtResource("9_kek77")]
+[node name="ArrowSign32" parent="map2/Plane_col/StaticBody3D" index="35" unique_id=686688605 instance=ExtResource("9_kek77")]
 transform = Transform3D(-5.4244738e-05, 0, 0.0007328527, 0, 0.00073074084, 0, -0.00073272124, 0, -5.4254593e-05, 0.041335195, 0.0049842354, -0.8366389)
 
-[node name="ArrowSign33" parent="map2/Plane_col/StaticBody3D" index="36" unique_id=1348684548 instance=ExtResource("9_kek77")]
+[node name="ArrowSign33" parent="map2/Plane_col/StaticBody3D" index="36" unique_id=1525954385 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00020701326, 0, 0.0007050864, 0, 0.00073074084, 0, -0.00070495997, 0, 0.00020705033, 0.05685567, 0.0036422387, -0.83815324)
 
-[node name="ArrowSign34" parent="map2/Plane_col/StaticBody3D" index="37" unique_id=1329338602 instance=ExtResource("9_kek77")]
+[node name="ArrowSign34" parent="map2/Plane_col/StaticBody3D" index="37" unique_id=1118923704 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.0001911271, 0, 0.00070955895, 0, 0.00073074084, 0, -0.00070943165, 0, -0.00019116144, 0.2285617, 0.0053457003, -0.84436446)
 
-[node name="ArrowSign35" parent="map2/Plane_col/StaticBody3D" index="38" unique_id=933310486 instance=ExtResource("9_kek77")]
+[node name="ArrowSign35" parent="map2/Plane_col/StaticBody3D" index="38" unique_id=2100536677 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00021384428, 0, 0.0007030439, 0, 0.00073074084, 0, -0.00070291787, 0, 0.0002138826, 0.24962506, 0.0053457003, -0.8438882)
 
-[node name="ArrowSign36" parent="map2/Plane_col/StaticBody3D" index="39" unique_id=933148614 instance=ExtResource("9_kek77")]
+[node name="ArrowSign36" parent="map2/Plane_col/StaticBody3D" index="39" unique_id=899239004 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00040947073, 0, 0.00061015575, 0, 0.0007307409, 0, -0.00061004644, 0, 0.0004095442, 0.27211133, 0.003884215, -0.835585)
 
-[node name="ArrowSign37" parent="map2/Plane_col/StaticBody3D" index="40" unique_id=1605885383 instance=ExtResource("9_kek77")]
+[node name="ArrowSign37" parent="map2/Plane_col/StaticBody3D" index="40" unique_id=865656224 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00064384553, 0, 0.00035402065, 0, 0.00073074084, 0, -0.00035395715, 0, 0.00064396113, 0.8572787, -0.019216593, -0.54758906)
 
-[node name="ArrowSign38" parent="map2/Plane_col/StaticBody3D" index="41" unique_id=1985486196 instance=ExtResource("9_kek77")]
+[node name="ArrowSign38" parent="map2/Plane_col/StaticBody3D" index="41" unique_id=322683243 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.0007246731, 0, 0.00012114743, 0, 0.00073074084, 0, -0.000121125704, 0, 0.0007248034, 0.86370814, -0.019366661, -0.53003216)
 
-[node name="ArrowSign39" parent="map2/Plane_col/StaticBody3D" index="42" unique_id=1689686901 instance=ExtResource("9_kek77")]
+[node name="ArrowSign39" parent="map2/Plane_col/StaticBody3D" index="42" unique_id=1248107486 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00073472626, 0, 0, 0, 0.00073074084, 0, 0, 0, 0.0007348582, 0.86562556, -0.019198798, -0.5073666)
 
-[node name="ArrowSign40" parent="map2/Plane_col/StaticBody3D" index="43" unique_id=150352722 instance=ExtResource("9_kek77")]
+[node name="ArrowSign40" parent="map2/Plane_col/StaticBody3D" index="43" unique_id=715190971 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00064327655, 0.00010751842, 0.00033818957, -7.127156e-05, 0.0007209773, -9.619027e-05, -0.0003477617, 5.112381e-05, 0.0006452845, 0.80092156, -0.013369765, -0.40635124)
 
-[node name="ArrowSign41" parent="map2/Plane_col/StaticBody3D" index="44" unique_id=743959567 instance=ExtResource("9_kek77")]
+[node name="ArrowSign41" parent="map2/Plane_col/StaticBody3D" index="44" unique_id=1001126590 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.0006947515, 0, -0.00023908877, 0, 0.00073074084, 0, 0.00023904585, 0, 0.00069487636, 0.8433305, -0.02264443, -0.36644053)
 
-[node name="ArrowSign42" parent="map2/Plane_col/StaticBody3D" index="45" unique_id=1553937625 instance=ExtResource("9_kek77")]
+[node name="ArrowSign42" parent="map2/Plane_col/StaticBody3D" index="45" unique_id=1364082375 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.0002291517, 0, -0.0006982028, 0, 0.00073074084, 0, 0.0006980776, 0, 0.00022919287, 0.12348065, -0.02081142, -0.250274)
 
-[node name="ArrowSign43" parent="map2/Plane_col/StaticBody3D" index="46" unique_id=968441087 instance=ExtResource("9_kek77")]
+[node name="ArrowSign43" parent="map2/Plane_col/StaticBody3D" index="46" unique_id=1961465767 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00043880293, 0, -0.00058940594, 0, 0.00073074084, 0, 0.0005893001, 0, 0.00043888183, 0.09957682, -0.021993488, -0.23852558)
 
-[node name="ArrowSign44" parent="map2/Plane_col/StaticBody3D" index="47" unique_id=354836028 instance=ExtResource("9_kek77")]
+[node name="ArrowSign44" parent="map2/Plane_col/StaticBody3D" index="47" unique_id=1158627243 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.0005018974, 0, -0.0005366796, 0, 0.00073074084, 0, 0.0005365833, 0, 0.00050198764, 0.040121492, -0.008274931, 0.8356426)
 
-[node name="ArrowSign45" parent="map2/Plane_col/StaticBody3D" index="48" unique_id=1296911871 instance=ExtResource("9_kek77")]
+[node name="ArrowSign45" parent="map2/Plane_col/StaticBody3D" index="48" unique_id=586800988 instance=ExtResource("9_kek77")]
 transform = Transform3D(0.00010603692, 0, -0.0007271648, 0, 0.00073074084, 0, 0.0007270343, 0, 0.00010605597, 0.021698702, -0.005731348, 0.8393029)
 
 [node name="TrackingCamera" type="Camera3D" parent="." unique_id=659504935 node_paths=PackedStringArray("target") groups=["Camera"]]

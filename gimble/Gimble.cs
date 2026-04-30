@@ -30,7 +30,6 @@ public partial class Gimble : Node3D
 
         foreach (var cam in cameras) cam.Current = false;
         cameras[activeCam].Current = true;
-        GD.Print(activeCam);
     }
 
     public override void _Input(InputEvent @event)
