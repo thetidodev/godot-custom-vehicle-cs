@@ -18,7 +18,6 @@ friction = 0.5
 
 [sub_resource type="Resource" id="Resource_ucvvl"]
 script = ExtResource("2_3vc88")
-AST_shift_assistance = 0
 metadata/_custom_type_script = "uid://dnuj58qpxmyrh"
 
 [sub_resource type="Curve" id="Curve_1mh4o"]
@@ -161,6 +160,7 @@ Controls = SubResource("Resource_ucvvl")
 EngineDriveForce = 8.0
 EngineTorqueCurve = SubResource("Curve_1mh4o")
 EngineDeclineCurve = SubResource("Curve_shams")
+AutoLaunchRPM = 1000.0
 SteeringPivotNode = NodePath("rl")
 CenterOfMassNode = NodePath("CenterOfMass")
 

@@ -29,6 +29,26 @@ public partial class Vehicle : RigidBody3D
     [Export] float GearBoxFinalDriveRatio = 3.772f;
     [Export] Array<float> GearBoxReverseGearRatios = [3.0f];
     [Export] float GearBoxClutchNeeded = 0.25f;
+    // When enabled, the gearbox picks gears itself and the gearup/geardown inputs are ignored.
+    [Export] bool AutomaticGearbox = false;
+    // Engine RPM (as a fraction of the idle-to-redline range) above which the gearbox shifts up.
+    [Export(PropertyHint.Range, "0,1,0.01")] float AutoUpshiftRPMFraction = 0.85f;
+    // Engine RPM (as a fraction of the idle-to-redline range) below which the gearbox shifts down.
+    [Export(PropertyHint.Range, "0,1,0.01")] float AutoDownshiftRPMFraction = 0.3f;
+    // Engine RPM (as a fraction of idle RPM) below which the automatic gearbox drops to neutral to avoid stalling.
+    [Export(PropertyHint.Range, "0,1,0.01")] float AutoStallRPMFraction = 0.5f;
+    // Engine RPM the automatic gearbox must reach from a standstill before engaging first gear or reverse.
+    [Export] float AutoLaunchRPM = 1500f;
+    // How long the automatic gearbox keeps the clutch pressed after changing gear, in seconds.
+    [Export] float AutoClutchHoldTime = 0.1f;
+    // Clutch position (0 = engaged, 1 = pressed) the automatic gearbox slips to when pulling away from a standstill.
+    [Export(PropertyHint.Range, "0,1,0.01")] float AutoLaunchClutchSlip = 0.5f;
+    // Speed (m/s) at which the launch clutch slip has fully released.
+    [Export] float AutoClutchLaunchSpeed = 5f;
+    // Minimum time between automatic shifts, in seconds.
+    [Export] float AutoShiftCooldown = 0.5f;
+    // Forward speed (m/s) below which the automatic gearbox may switch between drive and reverse.
+    [Export] float AutoDirectionChangeSpeed = 0.5f;
 
     [Export] float DIFF_Central_Locking_Preload = 0f;
     [Export] float DIFF_Central_Locking_Power = 0.0f;
@@ -66,6 +86,9 @@ public partial class Vehicle : RigidBody3D
     float analogAccelerate = 0;
     // Smoothed brake pedal position (0-1)
     float analogDecelerate = 0;
+    // Pedal positions after mapping to engine throttle and brakes (differs from the raw pedals on the automatic gearbox)
+    float throttleInput = 0;
+    float brakeInput = 0;
     // Smoothed handbrake position (0-1)
     float analogHandbrake = 0;
     // Smoothed clutch pedal position (0-1)
@@ -82,11 +105,6 @@ public partial class Vehicle : RigidBody3D
     // Angular velocity expressed in local (body) space
     Vector3 localAngularVelocity;
 
-    // Countdown timer: automatic clutch stays engaged while this is above zero during a gear shift
-    float autoClutchEngageTimer = 0;
-    // Countdown timer: throttle is blipped/cut while this is above zero during a gear shift
-    float autoThrottleBlipTimer = 0;
-
     // The gear the driver has requested; actual gear change happens once clutch conditions are met
     int targetGear = 0;
     // True when the vehicle is currently driving in reverse
@@ -99,6 +117,15 @@ public partial class Vehicle : RigidBody3D
 
     // The gear ratio from one gear below the current gear (used to compare RPM across shifts)
     float previousGearRatio = 0;
+
+    // Time left before the automatic gearbox is allowed to shift again (seconds)
+    float autoShiftCooldownTimer = 0;
+    // Gear the automatic gearbox will engage once the clutch is pressed (null when no shift is in progress)
+    int? autoPendingGear = null;
+    // Time left holding the clutch pressed after an automatic gear change (seconds)
+    float autoClutchHoldTimer = 0;
+
+    float desiredClutching = 0;
 
     readonly TorqueData torqueData = new();
 
@@ -146,17 +173,7 @@ public partial class Vehicle : RigidBody3D
         bool withinRange = direction > 0 ? targetGear < gearLimit : targetGear > gearLimit;
         if (!withinRange) return;
 
-        if (Controls.AST_shift_assistance > 0)
-        {
-            // Automatic shift assistance: trigger clutch and throttle blip timers, then shift immediately.
-            if (targetGear != 0)
-            {
-                autoClutchEngageTimer = Controls.AST_shifting_clutch_out_time;
-                autoThrottleBlipTimer = Controls.AST_shifting_off_throttle_time;
-            }
-            targetGear += direction;
-        }
-        else if (analogClutching > GearBoxClutchNeeded)
+        if (analogClutching > GearBoxClutchNeeded)
         {
             // Manual: only shift if the driver has pressed the clutch far enough.
             targetGear += direction;
@@ -165,11 +182,137 @@ public partial class Vehicle : RigidBody3D
 
     public override void _Input(InputEvent @event)
     {
-        if (@event.IsActionPressed("gearup")) ShiftGear(1);
-        else if (@event.IsActionPressed("geardown")) ShiftGear(-1);
+        if (!AutomaticGearbox)
+        {
+            if (@event.IsActionPressed("gearup")) ShiftGear(1);
+            else if (@event.IsActionPressed("geardown")) ShiftGear(-1);
+        }
 
         if (@event.IsActionPressed("debug_key"))
             DB_forces_visible = !DB_forces_visible;
+    }
+
+    // Requests a gear change. Neutral is selected immediately; any other gear waits until the clutch has been pressed
+    // (see HandleAutomaticGearbox), the same way a manual shift needs the clutch.
+    void AutoSelectGear(int newGear)
+    {
+        if (newGear == targetGear && autoPendingGear is null) return;
+        autoShiftCooldownTimer = AutoShiftCooldown;
+        if (newGear == 0)
+        {
+            targetGear = 0;
+            autoPendingGear = null;
+        }
+        else if (newGear != targetGear) autoPendingGear = newGear;
+    }
+
+    // Clutch position the automatic gearbox wants: pressed while shifting or in neutral, then released gradually,
+    // slipping at low speed so the engine isn't dragged down when pulling away.
+    float AutoClutchTarget()
+    {
+        if (targetGear == 0 || autoPendingGear is not null || autoClutchHoldTimer > 0) return 1f;
+        // Braking without throttle: disconnect the engine so it can't creep against the brakes and hold the vehicle above the direction-change speed.
+        if (brakeInput > 0.05f && throttleInput <= 0.05f) return 1f;
+        float launchFactor = 1f - Mathf.Clamp(Mathf.Abs(localVelocity.Z) / AutoClutchLaunchSpeed, 0f, 1f);
+        return AutoLaunchClutchSlip * launchFactor;
+    }
+
+    // Chooses targetGear from throttle/brake input, vehicle speed and engine RPM.
+    void HandleAutomaticGearbox(float delta)
+    {
+        autoShiftCooldownTimer = Mathf.Max(autoShiftCooldownTimer - delta, 0f);
+        autoClutchHoldTimer = Mathf.Max(autoClutchHoldTimer - delta, 0f);
+
+        // A gear change is in progress: wait for the clutch to be pressed, change gear, then hold the clutch briefly.
+        if (autoPendingGear is not null)
+        {
+            if (analogClutching > GearBoxClutchNeeded)
+            {
+                targetGear = autoPendingGear.Value;
+                autoPendingGear = null;
+                autoClutchHoldTimer = AutoClutchHoldTime;
+            }
+            return;
+        }
+
+        float forwardSpeed = localVelocity.Z;
+        bool moving = Mathf.Abs(forwardSpeed) >= AutoDirectionChangeSpeed;
+        bool wantsForward = analogAccelerate > 0.05f;
+        bool wantsReverse = analogDecelerate > 0.05f;
+
+        float rpmRange = EngineMaxRPM - EngineIdleRPM;
+        float upshiftRPM = EngineIdleRPM + rpmRange * AutoUpshiftRPMFraction;
+        float downshiftRPM = EngineIdleRPM + rpmRange * AutoDownshiftRPMFraction;
+        // Recovered = clearly above the stall threshold. Idle itself is too strict: stall prevention can hold RPM just under it.
+        float recoveredRPM = EngineIdleRPM * (1f + AutoStallRPMFraction) * 0.5f;
+
+        // Engine is about to stall: drop to neutral so it can recover. A slipping clutch protects the engine, so only check when mostly engaged.
+        if (targetGear != 0 && analogClutching < GearBoxClutchNeeded && rpm < EngineIdleRPM * AutoStallRPMFraction)
+        {
+            AutoSelectGear(0);
+            return;
+        }
+
+        // Below AutoDirectionChangeSpeed the pedals pick the direction: up is first gear, down is reverse.
+        if (!moving)
+        {
+            // No pedal pressed while (nearly) stopped, e.g. after braking to a halt: neutral.
+            int wanted = wantsForward ? 1 : wantsReverse ? -1 : 0;
+            if (wanted == targetGear) return;
+
+            // Change direction through neutral so the engine can rev up to AutoLaunchRPM before the new gear engages.
+            if (targetGear != 0 || wanted == 0) AutoSelectGear(0);
+            else if (autoShiftCooldownTimer <= 0 && rpm >= AutoLaunchRPM) AutoSelectGear(wanted);
+            return;
+        }
+
+        // Moving: the gear follows the direction of travel (the pedals only accelerate or brake, see MapPedals).
+        if (forwardSpeed < 0)
+        {
+            if (targetGear != -1 && autoShiftCooldownTimer <= 0 && (targetGear != 0 || rpm >= recoveredRPM)) AutoSelectGear(-1);
+            return;
+        }
+
+        if (targetGear <= 0)
+        {
+            if (autoShiftCooldownTimer > 0 || (targetGear == 0 && rpm < recoveredRPM)) return;
+
+            // Pick the lowest forward gear that keeps the engine below the upshift point.
+            int engage = GearBoxForwardGearRatios.Count;
+            for (int i = 0; i < GearBoxForwardGearRatios.Count; i++)
+            {
+                if (SpeedBasedRPM(forwardSpeed, GearBoxForwardGearRatios[i]) < upshiftRPM) { engage = i + 1; break; }
+            }
+            AutoSelectGear(engage);
+            return;
+        }
+
+        if (autoShiftCooldownTimer > 0) return;
+
+        // Decide from the RPM the vehicle's ground speed implies, not the engine RPM, so wheelspin and airtime don't trigger shifts.
+        float currentSpeedRPM = SpeedBasedRPM(forwardSpeed, GearBoxForwardGearRatios[targetGear - 1]);
+
+        if (targetGear < GearBoxForwardGearRatios.Count && currentSpeedRPM > upshiftRPM)
+        {
+            AutoSelectGear(targetGear + 1);
+        }
+        else if (targetGear > 1 && currentSpeedRPM < downshiftRPM)
+        {
+            // Only downshift if the lower gear would not immediately push the engine past the upshift point.
+            float predictedRPM = SpeedBasedRPM(forwardSpeed, GearBoxForwardGearRatios[targetGear - 2]);
+            if (predictedRPM < upshiftRPM) AutoSelectGear(targetGear - 1);
+        }
+    }
+
+    // Engine RPM the given forward speed (m/s) would imply through the driven wheels in a gear with the given ratio.
+    float SpeedBasedRPM(float forwardSpeed, float gearRatio)
+    {
+        // drivenWheelRadius is twice the weighted average radius (see the physics loop).
+        float averageRadius = drivenWheelRadius / 2.0f;
+        if (averageRadius <= 0.001f) return 0f;
+        float wheelSpin = Mathf.Abs(forwardSpeed) / averageRadius;
+        // The extra 2.0 matches the internal RPM scale used for combinedGearRatio in the physics loop.
+        return Rads2Rpm(wheelSpin) * gearRatio * GearBoxFinalDriveRatio * 2.0f;
     }
 
     // Applies the current gear selection and returns the combined gear + final drive ratio.
@@ -177,21 +320,7 @@ public partial class Vehicle : RigidBody3D
     {
         float gearRatio = 1f;
 
-        if (Controls.AST_shift_assistance > 0)
-        {
-            // Commit the target gear once the clutch is engaged or we are in neutral.
-            if (analogClutching > GearBoxClutchNeeded || gear == 0)
-            {
-                gear = targetGear;
-                if (gear == 0)
-                {
-                    autoClutchEngageTimer = -1;
-                    autoThrottleBlipTimer = -1;
-                }
-            }
-            if (autoThrottleBlipTimer <= 0) onReverse = gear < 0;
-        }
-        else gear = targetGear;
+        gear = targetGear;
 
         // Look up the ratio one gear below current, for cross-gear RPM comparisons.
         int previousGearIndex = Mathf.Abs(gear) - 2;
@@ -211,7 +340,7 @@ public partial class Vehicle : RigidBody3D
     public void HandleEngine(float delta, float revUpRate, float revDownRate)
     {
         float physicsStepsPerMinute = delta * 60.0f;
-        throttle -= (throttle - analogAccelerate) * 0.5f;
+        throttle -= (throttle - throttleInput) * 0.5f;
 
         // The throttle position at which rev-up and rev-down forces exactly balance.
         float torqueBalancePoint = revDownRate / (revUpRate + revDownRate);
@@ -243,6 +372,41 @@ public partial class Vehicle : RigidBody3D
         return desired;
     }
 
+    // Maps the up/down pedals onto the engine throttle and the brakes.
+    // Manual: up is throttle, down is brake. Automatic: the direction of travel decides. The pedal matching it accelerates
+    // and the opposite pedal brakes. Below AutoDirectionChangeSpeed each pedal accelerates in its own direction instead.
+    void MapPedals()
+    {
+        if (!AutomaticGearbox)
+        {
+            throttleInput = analogAccelerate;
+            brakeInput = analogDecelerate;
+            return;
+        }
+
+        float forwardSpeed = localVelocity.Z;
+        if (forwardSpeed >= AutoDirectionChangeSpeed)
+        {
+            throttleInput = analogAccelerate;
+            brakeInput = analogDecelerate;
+        }
+        else if (forwardSpeed <= -AutoDirectionChangeSpeed)
+        {
+            throttleInput = analogDecelerate;
+            brakeInput = analogAccelerate;
+        }
+        else
+        {
+            // Nearly stopped: the pressed pedal (up wins) picks the direction. Only drive once the matching gear (or neutral, to rev up) is selected.
+            bool forward = analogAccelerate > 0.05f || analogDecelerate <= 0.05f;
+            float pedal = forward ? analogAccelerate : analogDecelerate;
+            bool gearMatches = targetGear == 0 || (targetGear > 0) == forward;
+            throttleInput = gearMatches ? pedal : 0f;
+            // No pedal pressed: hold the vehicle still instead of letting it roll in neutral.
+            brakeInput = analogAccelerate > 0.05f || analogDecelerate > 0.05f ? 0f : 1f;
+        }
+    }
+
     public void HandleControls(float deltaScale)
     {
         float desiredSteering = Input.GetAxis("right", "left");
@@ -250,35 +414,17 @@ public partial class Vehicle : RigidBody3D
         float desiredDecelerate = Mathf.Min(Input.GetActionStrength("down"), 1);
         float desiredHandbrake = Mathf.Min(Input.GetActionStrength("jump"), 1);
 
-        float desiredClutching = Controls.AST_shift_assistance > 0
-            ? Input.GetActionStrength("jump")
-            : Input.GetActionStrength("sprint");
-
-        // Auto-clutch: compute how far the engine RPM is below the target engagement point.
-        float clutchEngagementRPM = EngineIdleRPM + Controls.AST_clutch_in_rpm_offset;
-        float distanceBelowEngagementRPM = (clutchEngagementRPM - rpm) / (clutchEngagementRPM - EngineIdleRPM);
-
-        if (Controls.AST_shift_assistance > 0)
-            desiredClutching += Mathf.Clamp(distanceBelowEngagementRPM, 0, 1);
-
+        desiredClutching = Mathf.MoveToward(desiredClutching, Input.GetActionStrength("sprint"), 0.2f);
+        debug.AddOrUpdateDebug("desiredClutching: ", desiredClutching.ToString());
         desiredClutching = Mathf.Min(desiredClutching, 1);
-
-        // During an automatic gear shift, override throttle/clutch to match engine speed to the new gear.
-        if (autoThrottleBlipTimer > 0)
-        {
-            if (rpm < wheelDrivenRPM) { desiredAccelerate = 1; autoClutchEngageTimer = autoThrottleBlipTimer; }
-            else { desiredAccelerate = 0; autoThrottleBlipTimer -= deltaScale; }
-        }
-        if (autoClutchEngageTimer > 0)
-        {
-            desiredClutching = 1;
-            autoClutchEngageTimer -= deltaScale;
-        }
+        if (AutomaticGearbox) desiredClutching = AutoClutchTarget();
 
         analogAccelerate = RampAnalog(analogAccelerate, desiredAccelerate, Controls.OnThrottleRate, Controls.OffThrottleRate, deltaScale);
         analogDecelerate = RampAnalog(analogDecelerate, desiredDecelerate, Controls.OnBrakeRate, Controls.OffBrakeRate, deltaScale);
         analogHandbrake = RampAnalog(analogHandbrake, desiredHandbrake, Controls.OnHandbrakeRate, Controls.OffHandbrakeRate, deltaScale);
         analogClutching = RampAnalog(analogClutching, desiredClutching, Controls.OnClutchRate, Controls.OffClutchRate, deltaScale);
+
+        MapPedals();
 
         // Steering smoothing: pick a correction speed depending on whether the wheel is
         // turning into the desired direction, oversteering past it, or returning to centre.
@@ -330,6 +476,8 @@ public partial class Vehicle : RigidBody3D
 
         debug.AddOrUpdateDebug("RPM: ", rpm.ToString());
         debug.AddOrUpdateDebug("Gear: ", gear.ToString());
+        debug.AddOrUpdateDebug("Forward speed: ", localVelocity.Z.ToString("0.00"));
+        debug.AddOrUpdateDebug("Pending gear: ", autoPendingGear?.ToString() ?? "-");
         debug.AddOrUpdateDebug("km/h: ", (LinearVelocity.Length() * 3.6f).ToString());
 
         float delta = state.Step;
@@ -338,6 +486,7 @@ public partial class Vehicle : RigidBody3D
         wheelDrivenRPM = 0;
 
         HandleControls(physicsStepsPerMinute);
+        if (AutomaticGearbox) HandleAutomaticGearbox(delta);
 
         // Normalise current RPM to 0-1 between idle and redline, for torque/decline curve sampling.
         float rpmProgress = (rpm - EngineIdleRPM) / (EngineMaxRPM - EngineIdleRPM);
@@ -492,7 +641,7 @@ public partial class Vehicle : RigidBody3D
 
             // Braking torque = brake capacity x blended pedal input (foot brake + handbrake), scaled by ABS.
             wheel.drivetrainBraking = wheel.drivetrainMaxBrakeTorque
-                * Mathf.Min(wheel.drivetrainBrakeBias * analogDecelerate + wheel.drivetrainHandbrakeBias * analogHandbrake, 1)
+                * Mathf.Min(wheel.drivetrainBrakeBias * brakeInput + wheel.drivetrainHandbrakeBias * analogHandbrake, 1)
                 * GetABSThreshold();
 
             ApplyImpulse(wheel.impulse.force, wheel.impulse.position);

@@ -33,7 +33,11 @@ orientation = 1
 height = 0.2
 radius = 0.29
 
-[node name="Wheel" type="Node3D" unique_id=1844758401 node_paths=PackedStringArray("skidMarkEmitter", "shapeCast", "spinningMeshes", "fixedMeshes", "spinMarker", "fixedMarker", "contactPointMarker", "lateralForceArrow", "longitudinalForceArrow", "suspensionForceArrow", "patchPositionMesh", "hubMarker")]
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_vo8pi"]
+height = 0.2
+radius = 0.24
+
+[node name="Wheel" type="Node3D" unique_id=1844758401 node_paths=PackedStringArray("skidMarkEmitter", "shapeCast", "spinningMeshes", "fixedMeshes", "spinMarker", "fixedMarker", "contactPointMarker", "lateralForceArrow", "longitudinalForceArrow", "suspensionForceArrow", "patchPositionMesh", "hubMarker", "rimJoint")]
 script = ExtResource("1_s2jl8")
 skidMarkEmitter = NodePath("SkidMarkEmittr")
 skidMarkSensitivity = 50.0
@@ -48,6 +52,7 @@ longitudinalForceArrow = NodePath("ContactVisual/longitudal")
 suspensionForceArrow = NodePath("ContactVisual/suspforce")
 patchPositionMesh = NodePath("ContactVisual/patch_pos")
 hubMarker = NodePath("hub")
+rimJoint = NodePath("Generic6DOFJoint3D")
 tireModel = SubResource("Resource_g6xxt")
 
 [node name="ContactVisual" type="Marker3D" parent="." unique_id=22975496]
@@ -96,3 +101,14 @@ process_physics_priority = -1
 transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
 shape = SubResource("CylinderShape3D_f58na")
 target_position = Vector3(-1, 0, 0)
+
+[node name="Collider" type="RigidBody3D" parent="." unique_id=66547899]
+collision_layer = 4
+collision_mask = 5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Collider" unique_id=857395831]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CylinderShape3D_vo8pi")
+
+[node name="Generic6DOFJoint3D" type="Generic6DOFJoint3D" parent="." unique_id=208746386]
+node_b = NodePath("../Collider")

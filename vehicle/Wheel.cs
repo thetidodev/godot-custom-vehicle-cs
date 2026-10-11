@@ -22,6 +22,7 @@ public partial class Wheel : Node3D
     [Export] MeshInstance3D patchPositionMesh;
     [Export] public Wheel differentialLockTarget;
     [Export] public Marker3D hubMarker;
+    [Export] Generic6DofJoint3D rimJoint;
     Vehicle car;
 
 
@@ -114,6 +115,14 @@ public partial class Wheel : Node3D
         {
             Z = Position.X > 0 ? -camberAngle : camberAngle
         };
+
+        if (rimJoint != null)
+        {
+            rimJoint.NodeA = GetParent().GetPath();
+            float maxTravel = suspensionRestLength + suspensionTireHeight;
+            rimJoint.SetParamY(Generic6DofJoint3D.Param.LinearLowerLimit, -suspensionRestLength);
+            rimJoint.SetParamY(Generic6DofJoint3D.Param.LinearUpperLimit, -(suspensionRestLength - maxTravel));
+        }
     }
 
     public override void _PhysicsProcess(double delta)
@@ -384,7 +393,7 @@ public partial class Wheel : Node3D
         distanceTravelledAllWheelDrive += spin;
     }
 
-    private void UpdateDebugArrow(Sprite3D arrow, float value, Vector3 baseScale, float forceLength, float curvedGrip, bool isSlipping)
+    private static void UpdateDebugArrow(Sprite3D arrow, float value, Vector3 baseScale, float forceLength, float curvedGrip, bool isSlipping)
     {
         arrow.Scale = baseScale with { Y = value / 40.0f };
         arrow.RotationDegrees = arrow.RotationDegrees with { X = arrow.Scale.Y > 0 ? 91 : 89 };
