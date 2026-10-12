@@ -4,6 +4,9 @@ using Godot.Collections;
 
 public partial class Vehicle : RigidBody3D
 {
+    // Pedal position above which a pedal counts as pressed
+    const float PedalDeadzone = 0.05f;
+
     [ExportGroup("Debug")]
     [Export] public Debug debug;
     [Export] public bool DB_forces_visible = false;
@@ -29,6 +32,8 @@ public partial class Vehicle : RigidBody3D
     [Export] float GearBoxFinalDriveRatio = 3.772f;
     [Export] Array<float> GearBoxReverseGearRatios = [3.0f];
     [Export] float GearBoxClutchNeeded = 0.25f;
+
+    [ExportGroup("Automatic Gearbox")]
     // When enabled, the gearbox picks gears itself and the gearup/geardown inputs are ignored.
     [Export] bool AutomaticGearbox = false;
     // Engine RPM (as a fraction of the idle-to-redline range) above which the gearbox shifts up.
@@ -50,20 +55,18 @@ public partial class Vehicle : RigidBody3D
     // Forward speed (m/s) below which the automatic gearbox may switch between drive and reverse.
     [Export] float AutoDirectionChangeSpeed = 0.5f;
 
+    [ExportGroup("Differentials")]
     [Export] float DIFF_Central_Locking_Preload = 0f;
     [Export] float DIFF_Central_Locking_Power = 0.0f;
     [Export] float DIFF_Central_Locking_Coast = 0.0f;
 
+    [ExportGroup("Steering")]
     [Export] Node3D SteeringPivotNode;
     [Export] Marker3D CenterOfMassNode;
     [Export] float SteeringRadius = 4.0f;
 
-    // How fast the engine is spinning based on wheel speed through the drivetrain (RPM)
-    float wheelDrivenRPM = 0;
     // Current engine RPM
     float rpm = 0f;
-    // Engine RPM from the previous physics frame
-    float previousRPM = 0;
     Array<Wheel> wheels = [];
     Array<Wheel> steeringWheels = [];
     int wheelCount = 0;
@@ -107,16 +110,11 @@ public partial class Vehicle : RigidBody3D
 
     // The gear the driver has requested; actual gear change happens once clutch conditions are met
     int targetGear = 0;
-    // True when the vehicle is currently driving in reverse
-    bool onReverse = false;
 
     // Predicted linear velocity delta from pre-applied impulses this frame
     Vector3 predictedLinearVelocity;
     // Predicted angular velocity delta from pre-applied impulses this frame
     Vector3 predictedAngularVelocity;
-
-    // The gear ratio from one gear below the current gear (used to compare RPM across shifts)
-    float previousGearRatio = 0;
 
     // Time left before the automatic gearbox is allowed to shift again (seconds)
     float autoShiftCooldownTimer = 0;
@@ -125,7 +123,15 @@ public partial class Vehicle : RigidBody3D
     // Time left holding the clutch pressed after an automatic gear change (seconds)
     float autoClutchHoldTimer = 0;
 
+    // Clutch pedal target, eased toward the input so keyboard presses ramp instead of jumping (manual gearbox)
     float desiredClutching = 0;
+
+    // Public props for driving the vehicle
+    public float Forward = 0;
+    public float Backward = 0;
+    public float SteerAxis = 0;
+    public float Handbrake = 0;
+    public float Clutch = 0;
 
     readonly TorqueData torqueData = new();
 
@@ -180,18 +186,6 @@ public partial class Vehicle : RigidBody3D
         }
     }
 
-    public override void _Input(InputEvent @event)
-    {
-        if (!AutomaticGearbox)
-        {
-            if (@event.IsActionPressed("gearup")) ShiftGear(1);
-            else if (@event.IsActionPressed("geardown")) ShiftGear(-1);
-        }
-
-        if (@event.IsActionPressed("debug_key"))
-            DB_forces_visible = !DB_forces_visible;
-    }
-
     // Requests a gear change. Neutral is selected immediately; any other gear waits until the clutch has been pressed
     // (see HandleAutomaticGearbox), the same way a manual shift needs the clutch.
     void AutoSelectGear(int newGear)
@@ -212,7 +206,7 @@ public partial class Vehicle : RigidBody3D
     {
         if (targetGear == 0 || autoPendingGear is not null || autoClutchHoldTimer > 0) return 1f;
         // Braking without throttle: disconnect the engine so it can't creep against the brakes and hold the vehicle above the direction-change speed.
-        if (brakeInput > 0.05f && throttleInput <= 0.05f) return 1f;
+        if (brakeInput > PedalDeadzone && throttleInput <= PedalDeadzone) return 1f;
         float launchFactor = 1f - Mathf.Clamp(Mathf.Abs(localVelocity.Z) / AutoClutchLaunchSpeed, 0f, 1f);
         return AutoLaunchClutchSlip * launchFactor;
     }
@@ -237,8 +231,8 @@ public partial class Vehicle : RigidBody3D
 
         float forwardSpeed = localVelocity.Z;
         bool moving = Mathf.Abs(forwardSpeed) >= AutoDirectionChangeSpeed;
-        bool wantsForward = analogAccelerate > 0.05f;
-        bool wantsReverse = analogDecelerate > 0.05f;
+        bool wantsForward = analogAccelerate > PedalDeadzone;
+        bool wantsReverse = analogDecelerate > PedalDeadzone;
 
         float rpmRange = EngineMaxRPM - EngineIdleRPM;
         float upshiftRPM = EngineIdleRPM + rpmRange * AutoUpshiftRPMFraction;
@@ -318,21 +312,11 @@ public partial class Vehicle : RigidBody3D
     // Applies the current gear selection and returns the combined gear + final drive ratio.
     public float Gearbox()
     {
-        float gearRatio = 1f;
-
         gear = targetGear;
 
-        // Look up the ratio one gear below current, for cross-gear RPM comparisons.
-        int previousGearIndex = Mathf.Abs(gear) - 2;
-        previousGearRatio = 0.001f;
-
-        if (gear > 0 && previousGearIndex >= 0) previousGearRatio = GearBoxForwardGearRatios[previousGearIndex];
-        else if (gear < 0 && previousGearIndex >= 0) previousGearRatio = GearBoxReverseGearRatios[previousGearIndex];
-
-        if (gear > 0) gearRatio = GearBoxForwardGearRatios[gear - 1];
-        else if (gear < 0) gearRatio = GearBoxReverseGearRatios[Mathf.Abs(gear) - 1];
-
-        previousGearRatio *= GearBoxFinalDriveRatio * 2.0f;
+        float gearRatio = gear > 0 ? GearBoxForwardGearRatios[gear - 1]
+                        : gear < 0 ? GearBoxReverseGearRatios[-gear - 1]
+                        : 1f;
         return gearRatio * GearBoxFinalDriveRatio;
     }
 
@@ -398,24 +382,49 @@ public partial class Vehicle : RigidBody3D
         else
         {
             // Nearly stopped: the pressed pedal (up wins) picks the direction. Only drive once the matching gear (or neutral, to rev up) is selected.
-            bool forward = analogAccelerate > 0.05f || analogDecelerate <= 0.05f;
+            bool forward = analogAccelerate > PedalDeadzone || analogDecelerate <= PedalDeadzone;
             float pedal = forward ? analogAccelerate : analogDecelerate;
             bool gearMatches = targetGear == 0 || (targetGear > 0) == forward;
             throttleInput = gearMatches ? pedal : 0f;
             // No pedal pressed: hold the vehicle still instead of letting it roll in neutral.
-            brakeInput = analogAccelerate > 0.05f || analogDecelerate > 0.05f ? 0f : 1f;
+            brakeInput = analogAccelerate > PedalDeadzone || analogDecelerate > PedalDeadzone ? 0f : 1f;
         }
     }
 
     public void HandleControls(float deltaScale)
     {
-        float desiredSteering = Input.GetAxis("right", "left");
-        float desiredAccelerate = Mathf.Min(Input.GetActionStrength("up"), 1);
-        float desiredDecelerate = Mathf.Min(Input.GetActionStrength("down"), 1);
-        float desiredHandbrake = Mathf.Min(Input.GetActionStrength("jump"), 1);
+        localVelocity = LinearVelocity * GlobalTransform.Basis.Orthonormalized();
+        localAngularVelocity = AngularVelocity * GlobalTransform.Basis.Orthonormalized();
 
-        desiredClutching = Mathf.MoveToward(desiredClutching, Input.GetActionStrength("sprint"), 0.2f);
-        debug.AddOrUpdateDebug("desiredClutching: ", desiredClutching.ToString());
+        HandlePedals(deltaScale);
+        HandleSteeringInput(deltaScale);
+    }
+
+    public void HandleInternalInputs()
+    {
+        Forward = Mathf.Min(Input.GetActionStrength("up"), 1);
+        Backward = Mathf.Min(Input.GetActionStrength("down"), 1);
+        Handbrake = Mathf.Min(Input.GetActionStrength("jump"), 1);
+        Clutch = Mathf.MoveToward(desiredClutching, Input.GetActionStrength("sprint"), 0.2f);
+        SteerAxis = Input.GetAxis("right", "left");
+
+        if (Input.IsActionJustPressed("debug_key"))
+            DB_forces_visible = !DB_forces_visible;
+
+        if (!AutomaticGearbox)
+        {
+            if (Input.IsActionJustPressed("gearup")) ShiftGear(1);
+            else if (Input.IsActionJustPressed("geardown")) ShiftGear(-1);
+        }
+    }
+
+    void HandlePedals(float deltaScale)
+    {
+        float desiredAccelerate = Forward;
+        float desiredDecelerate = Backward;
+        float desiredHandbrake = Handbrake;
+
+        desiredClutching = Clutch;
         desiredClutching = Mathf.Min(desiredClutching, 1);
         if (AutomaticGearbox) desiredClutching = AutoClutchTarget();
 
@@ -425,6 +434,12 @@ public partial class Vehicle : RigidBody3D
         analogClutching = RampAnalog(analogClutching, desiredClutching, Controls.OnClutchRate, Controls.OffClutchRate, deltaScale);
 
         MapPedals();
+    }
+
+    // Smooths the steering input and works out the final steering output including speed scaling and assistance.
+    void HandleSteeringInput(float deltaScale)
+    {
+        float desiredSteering = SteerAxis;
 
         // Steering smoothing: pick a correction speed depending on whether the wheel is
         // turning into the desired direction, oversteering past it, or returning to centre.
@@ -445,9 +460,6 @@ public partial class Vehicle : RigidBody3D
         steeringCorrectionSpeed *= deltaScale;
         if (steeringCorrectionSpeed > 0) steeringInput -= steeringError / (Mathf.Abs(steeringError) / steeringCorrectionSpeed + 1);
         steeringInput = Mathf.Clamp(steeringInput, -1.0f, 1.0f);
-
-        localVelocity = LinearVelocity * GlobalTransform.Basis.Orthonormalized();
-        localAngularVelocity = AngularVelocity * GlobalTransform.Basis.Orthonormalized();
 
         // Lateral speed (sideways sliding). Zero it out if the slide opposes the steer direction
         // so we don't reduce steering authority when the driver is already correcting oversteer.
@@ -472,6 +484,8 @@ public partial class Vehicle : RigidBody3D
 
     public override void _IntegrateForces(PhysicsDirectBodyState3D state)
     {
+        HandleInternalInputs();
+
         physicsState = state;
 
         debug.AddOrUpdateDebug("RPM: ", rpm.ToString());
@@ -482,8 +496,7 @@ public partial class Vehicle : RigidBody3D
 
         float delta = state.Step;
         float physicsStepsPerMinute = delta * 60.0f;
-        float drivetrainWeight = 0;
-        wheelDrivenRPM = 0;
+        float wheelDrivenRPM = 0;
 
         HandleControls(physicsStepsPerMinute);
         if (AutomaticGearbox) HandleAutomaticGearbox(delta);
@@ -545,7 +558,6 @@ public partial class Vehicle : RigidBody3D
 
         foreach (var wheel in wheels)
         {
-            drivetrainWeight += wheel.drivetrainInfluence;
             wheelDrivenRPM += wheel.spin * wheel.drivetrainInfluence;
 
             // Estimate how much torque this wheel should receive from the engine through the gearbox.
@@ -650,19 +662,18 @@ public partial class Vehicle : RigidBody3D
             drivenWheelRadius += wheel.wheelRadius * wheel.drivetrainInfluence;
         }
 
-        drivenWheelRadius /= drivetrainWeight / 2.0f;
+        drivenWheelRadius /= drivenWheelInfluence / 2.0f;
 
-        cachedDrivetrainWeight = drivetrainWeight;
+        cachedDrivetrainWeight = drivenWheelInfluence;
 
         // Convert accumulated wheel spin to RPM space and scale by gear ratio to get drivetrain RPM.
-        wheelDrivenRPM *= Rads2Rpm(1) / drivetrainWeight * combinedGearRatio;
+        wheelDrivenRPM *= Rads2Rpm(1) / drivenWheelInfluence * combinedGearRatio;
         if (gear < 0) wheelDrivenRPM = -wheelDrivenRPM;
 
         // Pull engine RPM toward wheel-driven RPM, limited by how tightly the clutch is engaged.
         float rpmError = rpm - wheelDrivenRPM;
         rpm -= Mathf.Clamp(rpmError, -clutchLockStrength, clutchLockStrength);
 
-        previousRPM = rpm;
         HandleAudio();
     }
 
@@ -706,7 +717,7 @@ public partial class Vehicle : RigidBody3D
 
     public void HandleAudio()
     {
-        float pitchScale = Mathf.Max(rpm, 800f) / 6000.0f;
+        float pitchScale = Mathf.Max(rpm, EngineIdleRPM) / 6000.0f;
 
         engineOn.VolumeDb = engineOn.MaxDb = Mathf.Max(Mathf.LinearToDb(throttle), -80.0f);
         engineOff.VolumeDb = engineOff.MaxDb = Mathf.Max(Mathf.LinearToDb(1.0f - throttle), -80.0f);

@@ -24,6 +24,4 @@ public partial class ControlSettings : Resource
 
     [Export] public float OnClutchRate = 0.2f;
     [Export] public float OffClutchRate = 0.2f;
-
-    public ControlSettings() { }
 }

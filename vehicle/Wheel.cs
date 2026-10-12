@@ -64,7 +64,6 @@ public partial class Wheel : Node3D
     // Used if shapeCast misses a collision for a single tick
     Vector3 lastContactPoint = Vector3.Zero;
     Vector3 lastContactNormal = Vector3.Zero;
-    Ground lastContactGround = new();
 
 
     public float spin = 0;
@@ -79,7 +78,6 @@ public partial class Wheel : Node3D
 
     public float drivetrainOverdrive;
     public float drivetrainTorque;
-    float drivetrainSubstantialTorque;
     public float drivetrainBraking;
 
     // Converts spring compression to Newtons
@@ -136,8 +134,6 @@ public partial class Wheel : Node3D
 
         float hertzScale = deltaTime * 60.0f;
         spin += drivetrainTorque / (drivetrainOverdrive + 1.0f);
-        spin += drivetrainSubstantialTorque;
-        aligningTorque += drivetrainSubstantialTorque;
 
         if (drivetrainBraking > 0)
         {
@@ -167,7 +163,6 @@ public partial class Wheel : Node3D
                 if (shapeCast.GetCollider(0) is Ground newGround) ground = newGround;
                 lastContactNormal = collisionNormal;
                 lastContactPoint = contactPoint;
-                lastContactGround = ground;
             }
             else
             {
@@ -175,7 +170,6 @@ public partial class Wheel : Node3D
                 contactPoint = lastContactPoint;
                 lastContactNormal = Vector3.Zero;
                 lastContactPoint = Vector3.Zero;
-                lastContactGround = new();
             }
 
             // Ignore contacts above the wheel (e.g. ceilings)
@@ -248,7 +242,6 @@ public partial class Wheel : Node3D
 
             float blendedTireShape = Mathf.Lerp(tireModel.ShapeY, tireModel.ShapeX, slipAngleRatio);
             float blendedTirePeak = Mathf.Lerp(tireModel.PeakY, tireModel.PeakX, slipAngleRatio);
-            float blendedPeakedGrip = totalGrip;
             float blendedCurvedGrip = Mathf.Lerp(curvedGripLateral, curvedGripLongitudinal, slipAngleRatio);
 
             // Difference between actual wheel angular speed and the speed implied by ground contact velocity
@@ -260,8 +253,9 @@ public partial class Wheel : Node3D
             if (totalGrip > 0)
             {
                 float spinResistanceModifier = tireSpinResistanceRate * deltaTime / (drivetrainOverdrive + 1.0f);
-                predictedSlipAmount = Mathf.Max(new Vector2(wheelSpeedDifference, predictedLateralVelocity).Length() / spinResistanceModifier / curvedGripLateral - 1, 0f);
-                float predictedPeakedAmount = 1.0f - (1.0f / (Mathf.Max(Mathf.Sqrt(Mathf.Pow(Mathf.Abs(wheelSpeedDifference), 2.0f) + Mathf.Pow(Mathf.Abs(predictedLateralVelocity), 2.0f)) / totalGrip / spinResistanceModifier - 1, 0) + 1.0f));
+                float slipVelocity = new Vector2(wheelSpeedDifference, predictedLateralVelocity).Length();
+                predictedSlipAmount = Mathf.Max(slipVelocity / spinResistanceModifier / curvedGripLateral - 1, 0f);
+                float predictedPeakedAmount = 1.0f - (1.0f / (Mathf.Max(slipVelocity / totalGrip / spinResistanceModifier - 1, 0) + 1.0f));
 
                 if (!isBrakeLocked)
                 {
@@ -302,7 +296,7 @@ public partial class Wheel : Node3D
             if (totalGrip > 0)
             {
                 patchSlipAmount = Mathf.Max(tirePatchOffset.Length() / (curvedGripLateral / blendedTireStiffness) - 1, 0);
-                patchPeakedAmount = 1.0f - (1.0f / (Mathf.Max(tirePatchOffset.Length() / (blendedPeakedGrip / blendedTireStiffness) - 1, 0) + 1.0f));
+                patchPeakedAmount = 1.0f - (1.0f / (Mathf.Max(tirePatchOffset.Length() / (totalGrip / blendedTireStiffness) - 1, 0) + 1.0f));
             }
 
             tirePatchOffset /= patchSlipAmount * (patchPeakedAmount / blendedTireShape * blendedTirePeak * (1.0f - tireModel.Linear) + tireModel.Linear) + 1f;
@@ -328,7 +322,7 @@ public partial class Wheel : Node3D
             if (totalGrip > 0)
             {
                 slipAmount = Mathf.Max(tireForceVector.Length() / blendedCurvedGrip - 1, 0);
-                peakedAmount = 1.0f - (1.0f / (Mathf.Max(tireForceVector.Length() / blendedPeakedGrip - 1, 0) + 1.0f));
+                peakedAmount = 1.0f - (1.0f / (Mathf.Max(tireForceVector.Length() / totalGrip - 1, 0) + 1.0f));
 
                 outputSkidding = Mathf.Max(slipAmount * blendedCurvedGrip * 0.025f * totalGrip + patchSlipAmount * blendedCurvedGrip * 0.05f * totalGrip, 0);
                 outputStressing = tireForceVector.Length() * Mathf.Min(Mathf.Abs(spin), 1);
@@ -383,8 +377,11 @@ public partial class Wheel : Node3D
             hubPosition = suspensionRestLength;
         }
 
-        patchPositionMesh.Position = patchPositionMesh.Position with { X = tirePatchOffset.X * contactAxis[0].X + tirePatchOffset.Y * contactAxis[0].Z };
-        patchPositionMesh.Position = patchPositionMesh.Position with { Z = tirePatchOffset.X * contactAxis[2].X + tirePatchOffset.Y * contactAxis[2].Z };
+        patchPositionMesh.Position = patchPositionMesh.Position with
+        {
+            X = tirePatchOffset.X * contactAxis[0].X + tirePatchOffset.Y * contactAxis[0].Z,
+            Z = tirePatchOffset.X * contactAxis[2].X + tirePatchOffset.Y * contactAxis[2].Z
+        };
 
         hubMarker.Position = hubMarker.Position with { Y = -hubPosition };
         if (!isBrakeLocked) spinMarker.RotateX(spin * deltaTime * 2.0f);
@@ -393,7 +390,7 @@ public partial class Wheel : Node3D
         distanceTravelledAllWheelDrive += spin;
     }
 
-    private static void UpdateDebugArrow(Sprite3D arrow, float value, Vector3 baseScale, float forceLength, float curvedGrip, bool isSlipping)
+    static void UpdateDebugArrow(Sprite3D arrow, float value, Vector3 baseScale, float forceLength, float curvedGrip, bool isSlipping)
     {
         arrow.Scale = baseScale with { Y = value / 40.0f };
         arrow.RotationDegrees = arrow.RotationDegrees with { X = arrow.Scale.Y > 0 ? 91 : 89 };
